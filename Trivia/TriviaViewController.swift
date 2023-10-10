@@ -21,14 +21,29 @@ class TriviaViewController: UIViewController {
   private var questions = [TriviaQuestion]()
   private var currQuestionIndex = 0
   private var numCorrectQuestions = 0
+    
+  private let triviaService = TriviaQuestionService()
   
   override func viewDidLoad() {
     super.viewDidLoad()
     addGradient()
     questionContainerView.layer.cornerRadius = 8.0
     // TODO: FETCH TRIVIA QUESTIONS HERE
+    fetchTriviaQuestions()
   }
-  
+  private func fetchTriviaQuestions() {
+    TriviaQuestionService.fetchTriviaQuestions { [weak self] questions in
+      DispatchQueue.main.async {
+        if let questions = questions {
+          self?.questions = questions
+            self?.updateQuestion(withQuestionIndex: 0)
+              } else {
+                // Handle error or show an alert to the user
+            }
+        }
+    }
+}
+
   private func updateQuestion(withQuestionIndex questionIndex: Int) {
     currentQuestionNumberLabel.text = "Question: \(questionIndex + 1)/\(questions.count)"
     let question = questions[questionIndex]
@@ -64,9 +79,14 @@ class TriviaViewController: UIViewController {
     updateQuestion(withQuestionIndex: currQuestionIndex)
   }
   
-  private func isCorrectAnswer(_ answer: String) -> Bool {
-    return answer == questions[currQuestionIndex].correctAnswer
-  }
+    private func isCorrectAnswer(_ answer: String) -> Bool {
+        guard currQuestionIndex >= 0 && currQuestionIndex < questions.count else {
+            return false // Handle the case where currQuestionIndex is out of bounds
+        }
+
+        return answer == questions[currQuestionIndex].correctAnswer
+    }
+
   
   private func showFinalScore() {
     let alertController = UIAlertController(title: "Game over!",
